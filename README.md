@@ -1,1 +1,1 @@
-# mecheye_ros2
+# Mech-Eye ROS2 Interface
