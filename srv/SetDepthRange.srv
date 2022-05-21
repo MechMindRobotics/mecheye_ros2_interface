@@ -1,0 +1,5 @@
+int32 lower
+int32 upper
+---
+int32 error_code
+string error_description

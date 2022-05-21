@@ -1,0 +1,6 @@
+---
+string fringe_coding_mode
+int32 frame_range_start
+int32 frame_range_end
+int32 frame_partition_count
+int32 power_level
