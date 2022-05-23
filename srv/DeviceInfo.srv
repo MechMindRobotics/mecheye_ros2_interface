@@ -1,0 +1,7 @@
+---
+string model
+string id
+string hardware_version
+string firmware_version
+string ip_address
+uint16 port
