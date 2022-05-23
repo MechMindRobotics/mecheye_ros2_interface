@@ -33,23 +33,23 @@ sudo apt install ros-galactic-pcl-conversions
 
 ```bash
 mkdir -p ~/ros_ws/src && cd ~/ros_ws/src
-git clone https://github.com/MechMindRobotics/mecheye_ros2.git
+git clone https://github.com/MechMindRobotics/mecheye_ros2_interface.git
 cd ~/ros_ws && colcon build
 ```
 
 ## Brief intro to the interface
 
 - Interface functions can be found in the documentation inside [Mech-Eye SDK](https://www.mech-mind.com/download/camera-sdk.html).
-- Change config in `~/ros_ws/src/mecheye_ros2/launch/start_camera.launch`
+- Change config in `~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.launch`
   - save_file: `true` to enable save file, otherwise keep it as `false`
   - camera_ip: change to your camera ip address here (also remember to comment and uncomment the lines in `MechMindCamera.cpp` to connect to a specific camera)
-  - at the moment, image save path can only be changed in source code `/mecheye_ros2/src/MechMindCamera.cpp`.
+  - at the moment, image save path can only be changed in source code `/mecheye_ros2_interface/src/MechMindCamera.cpp`.
   - remember to `colcon build` again after changing `*.cpp`.
 - Source the build workspace and run
 
   ```bash
   source ~/ros_ws/install/setup.bash
-  ros2 launch ~/ros_ws/src/mecheye_ros2/launch/start_camera.launch 
+  ros2 launch ~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.launch 
   ```
 
   Then, the camera will start working.
@@ -91,7 +91,7 @@ Color point cloud data.
 
 ## Services
 
-### [add_user_set](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/AddUserSet.srv)
+### [add_user_set](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/AddUserSet.srv)
 
 Invoke this service to add a user set.
 
@@ -99,23 +99,23 @@ This service has one parameter:
 
 `value` (string): User set name to add.
 
-### [capture_color_map](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/CaptureColorMap.srv)
+### [capture_color_map](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/CaptureColorMap.srv)
 
 Invoke this service to capture color map once.
 
-### [capture_color_point_cloud](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/CaptureColorPointCloud.srv)
+### [capture_color_point_cloud](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/CaptureColorPointCloud.srv)
 
 Invoke this service to capture color point cloud once.
 
-### [capture_depth_map](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/CaptureDepthMap.srv)
+### [capture_depth_map](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/CaptureDepthMap.srv)
 
 Invoke this service to capture color depth map once.
 
-### [capture_point_cloud](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/CapturePointCloud.srv)
+### [capture_point_cloud](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/CapturePointCloud.srv)
 
 Invoke this service to capture point cloud once.
 
-### [delete_user_set](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/DeleteUserSet.srv)
+### [delete_user_set](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/DeleteUserSet.srv)
 
 Invoke this service to delete a specified user set.
 
@@ -123,90 +123,90 @@ This service has one parameter:
 
 `value` (string): User set name to delete.
 
-### [device_info](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/DeviceInfo.srv)
+### [device_info](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/DeviceInfo.srv)
 
 Invoke this service to get the current connected device information.
 
-### [get_2d_expected_gray_value](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get2DExpectedGrayValue.srv)
+### [get_2d_expected_gray_value](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get2DExpectedGrayValue.srv)
 
 Invoke this service to get the expected image gray value.  
 Only take effect when 2D exposure mode is `Auto`.  
 A smaller value can decrease the brightness of the image, while a larger value can generate a brighter image.
 
-### [get_2d_exposure_mode](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get2DExposureMode.srv)
+### [get_2d_exposure_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get2DExposureMode.srv)
 
 Invoke this service to get current 2D exposure mode.  
 
-### [get_2d_exposure_sequence](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get2DExposureSequence.srv)
+### [get_2d_exposure_sequence](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get2DExposureSequence.srv)
 
 Invoke this service to get current 2D HDR exposure sequence.  
 Only take effect when 2D exposure mode is `HDR`.
 
-### [get_2d_exposure_time](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get2DExposureTime.srv)
+### [get_2d_exposure_time](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get2DExposureTime.srv)
 
 Invoke this service to get current 2D exposure time.  
 Only take effect when 2D exposure mode is `Timed`.
 
-### [get_2d_roi](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get2DROI.srv)
+### [get_2d_roi](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get2DROI.srv)
 
 Invoke this service to get current ROI when scanning 2D images.  
 Only take effect when 2D exposure mode is `Auto` or `HDR`.
 
-### [get_2d_sharpen_factor](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get2DSharpenFactor.srv)
+### [get_2d_sharpen_factor](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get2DSharpenFactor.srv)
 
 Invoke this service to get current image sharpen factor.
 
-### [get_2d_tone_mapping](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get2DToneMappingEnable.srv)
+### [get_2d_tone_mapping](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get2DToneMappingEnable.srv)
 
 Invoke this service to get whether or not is tone mapping enabled.  
 Tone mapping uses gray level transformation algorithm to make the image look more natural.
 
-### [get_3d_exposure](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get3DExposure.srv)
+### [get_3d_exposure](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get3DExposure.srv)
 
 Invoke this service to get current 3D exposure sequence.
 
-### [get_3d_gain](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get3DGain.srv)
+### [get_3d_gain](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get3DGain.srv)
 
 Invoke this service to get current camera's gain value during scanning 3D images.  
 Gain is an electronic amplification of the image signal. Large gain value is needed only when scanning extremely dark objects.
 
-### [get_3d_roi](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Get3DROI.srv)
+### [get_3d_roi](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Get3DROI.srv)
 
 Invoke this service to get current depth map's ROI.
 
-### [get_all_user_sets](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetAllUserSets.srv)
+### [get_all_user_sets](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetAllUserSets.srv)
 
 Invoke this service to get all available user sets.
 
-### [get_cloud_outlier_filter_mode](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetCloudOutlierFilterMode.srv)
+### [get_cloud_outlier_filter_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetCloudOutlierFilterMode.srv)
 
 Invoke this service to get current cloud outler filter mode.
 
-### [get_cloud_smooth_mode](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetCloudSmoothMode.srv)
+### [get_cloud_smooth_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetCloudSmoothMode.srv)
 
 Invoke this service to get current cloud smooth filter mode.
 
-### [get_current_user_set](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetCurrentUserSet.srv)
+### [get_current_user_set](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetCurrentUserSet.srv)
 
 Invoke this service to get the current user set name.
 
-### [get_depth_range](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetDepthRange.srv)
+### [get_depth_range](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetDepthRange.srv)
 
 Invoke this service to get the current depth image's valid range along Z-axis in the camera coordinate system.
 
-### [get_fringe_contrast_threshold](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetFringeContrastThreshold.srv)
+### [get_fringe_contrast_threshold](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetFringeContrastThreshold.srv)
 
 Invoke this service to get the current signal contrast threshold for effective pixels. Pixels with contrast less than this threshold will be ignored.
 
-### [get_fringe_min_threshold](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetFringeMinThreshold.srv)
+### [get_fringe_min_threshold](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetFringeMinThreshold.srv)
 
 Invoke this service to get the current signal minimum threshold for effective pixels. Pixels with intensity less than this threshold will be ignored.
 
-### [get_laser_settings](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/GetLaserSettings.srv)
+### [get_laser_settings](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetLaserSettings.srv)
 
 Invoke this service to get the current laser settings.
 
-### [set_2d_expected_gray_value](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set2DExpectedGrayValue.srv)
+### [set_2d_expected_gray_value](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DExpectedGrayValue.srv)
 
 Invoke this service to set the expected image gray value.  
 Only take effect when 2D exposure mode is `Auto`.  
@@ -216,7 +216,7 @@ This service has one parameter:
 
 `value` (int32): Expected image gray value to set. Min:0, Max: 255.
 
-### [set_2d_exposure_mode](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set2DExposureMode.srv)
+### [set_2d_exposure_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DExposureMode.srv)
 
 Invoke this service to set current 2D exposure mode.  
 
@@ -224,7 +224,7 @@ This service has one parameter:
 
 `value` (string): 2D exposure mode to set. Options include 'Timed', 'Auto', 'HDR', and 'Flash'.
 
-### [set_2d_exposure_sequence](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set2DExposureSequence.srv)
+### [set_2d_exposure_sequence](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DExposureSequence.srv)
 
 Invoke this service to set current 2D HDR exposure sequence.  
 Only take effect when 2D exposure mode is `HDR`.
@@ -242,7 +242,7 @@ This service has one parameter:
 
 `value` (float64): 2D exposure time to set. Min: 0.1, Max: 999.
 
-### [set_2d_roi](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set2DROI.srv)
+### [set_2d_roi](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DROI.srv)
 
 Invoke this service to set current ROI when scanning 2D images.  
 Only take effect when 2D exposure mode is `Auto` or `HDR`.
@@ -254,7 +254,7 @@ This service has four parameters:
 `width` (uint32): The width of the region of interest.  
 `height` (uint32): The height of the region of interest.
 
-### [set_2d_sharpen_factor](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set2DSharpenFactor.srv)
+### [set_2d_sharpen_factor](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DSharpenFactor.srv)
 
 Invoke this service to set current image sharpen factor.
 
@@ -262,7 +262,7 @@ This service has one parameter:
 
 `value` (float64): The sharpen factor to set. Min: 0, Max: 5.
 
-### [set_2d_tone_mapping](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set2DToneMappingEnable.srv)
+### [set_2d_tone_mapping](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DToneMappingEnable.srv)
 
 Invoke this service to set whether or not is tone mapping enabled.  
 Tone mapping uses gray level transformation algorithm to make the image look more natural.
@@ -271,7 +271,7 @@ This service has one parameter:
 
 `value` (bool): Whether or not to enable tone mapping.
 
-### [set_3d_exposure](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set3DExposure.srv)
+### [set_3d_exposure](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set3DExposure.srv)
 
 Invoke this service to set current 3D exposure sequence.
 
@@ -279,7 +279,7 @@ This service has one parameter:
 
 `sequence` (float64[]): Exposure sequence to set. Min: 0.1, Max: 99. Min Size: 1, Max Size: 3.
 
-### [set_3d_gain](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set3DGain.srv)
+### [set_3d_gain](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set3DGain.srv)
 
 Invoke this service to set current camera's gain value during scanning 3D images.  
 Gain is an electronic amplification of the image signal. Large gain value is needed only when scanning extremely dark objects.
@@ -288,7 +288,7 @@ This service has one parameter:
 
 `value` (float64): Gain value to set. Min: 0, Max: 16.
 
-### [set_3d_roi](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/Set3DROI.srv)
+### [set_3d_roi](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set3DROI.srv)
 
 Invoke this service to set current depth map's ROI.
 
@@ -299,7 +299,7 @@ This service has four parameters:
 `width` (uint32): The width of the region of interest.  
 `height` (uint32): The height of the region of interest.
 
-### [set_cloud_outlier_filter_mode](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/SetCloudOutlierFilterMode.srv)
+### [set_cloud_outlier_filter_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetCloudOutlierFilterMode.srv)
 
 Invoke this service to set current cloud outler filter mode.
 
@@ -307,7 +307,7 @@ This service has one parameter:
 
 `value` (string): Cloud outlier filter mode to set. Options include 'Off', 'Normal', and 'Weak'.
 
-### [set_cloud_smooth_mode](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/SetCloudSmoothMode.srv)
+### [set_cloud_smooth_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetCloudSmoothMode.srv)
 
 Invoke this service to set current cloud smooth filter mode.
 
@@ -315,7 +315,7 @@ This service has one parameter:
 
 `value` (string): Cloud smooth mode to set. Options include 'Off', 'Normal', 'Weak', and 'Strong'.
 
-### [set_current_user_set](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/SetCurrentUserSet.srv)
+### [set_current_user_set](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetCurrentUserSet.srv)
 
 Invoke this service to set the current user set name.
 
@@ -323,7 +323,7 @@ This service has one parameter:
 
 `value` (string): User set name to set.
 
-### [set_depth_range](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/SetDepthRange.srv)
+### [set_depth_range](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetDepthRange.srv)
 
 Invoke this service to set the current depth image's valid range along Z-axis in the camera coordinate system.
 
@@ -332,7 +332,7 @@ This service has two parameters:
 `lower` (int32): The lower limit of the roi on the z value of the depth map in the camera coordinate system.  
 `upper` (int32): The upper limit of the roi on the z value of the depth map in the camera coordinate system.
 
-### [set_fringe_contrast_threshold](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/SetFringeContrastThreshold.srv)
+### [set_fringe_contrast_threshold](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetFringeContrastThreshold.srv)
 
 Invoke this service to set the current signal contrast threshold for effective pixels. Pixels with contrast less than this threshold will be ignored.
 
@@ -340,7 +340,7 @@ This service has one parameter:
 
 `value` (int32): Signal contrast threshold to set. Min: 0, Max: 100.
 
-### [set_fringe_min_threshold](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/SetFringeMinThreshold.srv)
+### [set_fringe_min_threshold](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetFringeMinThreshold.srv)
 
 Invoke this service to set the current signal minimum threshold for effective pixels. Pixels with intensity less than this threshold will be ignored.
 
@@ -348,7 +348,7 @@ This service has one parameter:
 
 `value` (int32): Signal minimum threshold to set. Min: 0, Max: 100.
 
-### [set_laser_settings](https://github.com/MechMindRobotics/mecheye_ros2/blob/master/srv/SetLaserSettings.srv)
+### [set_laser_settings](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetLaserSettings.srv)
 
 Invoke this service to set the current laser settings.
 
