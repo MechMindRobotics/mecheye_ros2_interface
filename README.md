@@ -59,9 +59,12 @@ cd ~/ros_ws && colcon build
   source ~/ros_ws/install/setup.bash
   ros2 service call [/service_name] [mecheye_ros/srv/ServiceName] "{parameter_name: parameter_value}"
   ```
+
   ```bash
   # Example
   ros2 service call /set_laser_settings mecheye_ros/srv/SetLaserSettings "{fringe_coding_mode: 'Fast', frame_range_start: 0, frame_range_end: 50, frame_partition_count: 1, power_level: 20}"
+  ros2 service call /set_3d_exposure mecheye_ros/srv/Set3DExposure "{sequence: [3.2, 4.0]}"
+  ros2 service call /set_cloud_outlier_filter_mode mecheye_ros/srv/SetCloudOutlierFilterMode "{value: 'Off'}"
   ```
 
 - Select a camera in LAN to connect and capture once.
