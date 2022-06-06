@@ -40,26 +40,23 @@ cd ~/ros_ws && colcon build
 ## Brief intro to the interface
 
 - Interface functions can be found in the documentation inside [Mech-Eye SDK](https://www.mech-mind.com/download/camera-sdk.html).
-- Change config in `~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.launch`
-  - save_file: `true` to enable save file, otherwise keep it as `false`
+- Change config in `~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.py`
+  - save_file: `True` to enable save file, otherwise keep it as `False`
   - camera_ip: change to your camera ip address here (also remember to comment and uncomment the lines in `MechMindCamera.cpp` to connect to a specific camera)
   - at the moment, image save path can only be changed in source code `/mecheye_ros2_interface/src/MechMindCamera.cpp`.
   - remember to `colcon build` again after changing `*.cpp`.
-- Source the build workspace and use ros2 run
+- Source the build workspace and use ros2 launch
 
   ```bash
   source ~/ros_ws/install/setup.bash
-  ros2 run mecheye_ros_interface start
+  ros2 launch ~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.py 
   ```
 
-  - Or use ros2 launch
-
-    Using ROS2 launch will stuck the default program.  
-    Please Comment and uncomment the lines in `MechMindCamera.cpp` to connect to a specific camera using ip address before using ROS2 launch.
+  - Or use ros2 run
 
     ```bash
     source ~/ros_ws/install/setup.bash
-    ros2 launch ~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.launch 
+    ros2 run mecheye_ros_interface start
     ```
 
 - Open a new terminal, source the workspace and call services
