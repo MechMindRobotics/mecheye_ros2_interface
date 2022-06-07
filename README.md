@@ -40,35 +40,38 @@ cd ~/ros_ws && colcon build
 ## Brief intro to the interface
 
 - Interface functions can be found in the documentation inside [Mech-Eye SDK](https://www.mech-mind.com/download/camera-sdk.html).
-- Change config in `~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.launch`
-  - save_file: `true` to enable save file, otherwise keep it as `false`
+- Change config in `~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.py`
+  - save_file: `True` to enable save file, otherwise keep it as `False`
   - camera_ip: change to your camera ip address here (also remember to comment and uncomment the lines in `MechMindCamera.cpp` to connect to a specific camera)
   - at the moment, image save path can only be changed in source code `/mecheye_ros2_interface/src/MechMindCamera.cpp`.
   - remember to `colcon build` again after changing `*.cpp`.
-- Source the build workspace and run
+- Source the build workspace and use ros2 launch
 
   ```bash
   source ~/ros_ws/install/setup.bash
-  ros2 launch ~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.launch 
+  ros2 launch ~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.py 
   ```
 
-  Then, the camera will start working.
-- Open a new terminal, source the workspace and run
+  - Or use ros2 run
+
+    ```bash
+    source ~/ros_ws/install/setup.bash
+    ros2 run mecheye_ros_interface start
+    ```
+
+- Open a new terminal, source the workspace and call services
 
   ```bash
   source ~/ros_ws/install/setup.bash
-  ros2 service call [/service_name] [mecheye_ros/srv/ServiceName] "{parameter_name: parameter_value}"
+  ros2 service call [/service_name] [mecheye_ros_interface/srv/ServiceName] "{parameter_name: parameter_value}"
   ```
 
   ```bash
-  # Example
-  ros2 service call /set_laser_settings mecheye_ros/srv/SetLaserSettings "{fringe_coding_mode: 'Fast', frame_range_start: 0, frame_range_end: 50, frame_partition_count: 1, power_level: 20}"
-  ros2 service call /set_3d_exposure mecheye_ros/srv/Set3DExposure "{sequence: [3.2, 4.0]}"
-  ros2 service call /set_cloud_outlier_filter_mode mecheye_ros/srv/SetCloudOutlierFilterMode "{value: 'Off'}"
+  # Examples
+  ros2 service call /set_laser_settings mecheye_ros_interface/srv/SetLaserSettings "{fringe_coding_mode: 'Fast', frame_range_start: 0, frame_range_end: 50, frame_partition_count: 1, power_level: 20}"
+  ros2 service call /set_3d_exposure mecheye_ros_interface/srv/Set3DExposure "{sequence: [3.2, 4.0]}"
+  ros2 service call /set_cloud_outlier_filter_mode mecheye_ros_interface/srv/SetCloudOutlierFilterMode "{value: 'Off'}"
   ```
-
-- Select a camera in LAN to connect and capture once.
-- Call other functions available in the [SDK](https://www.mech-mind.com/download/camera-sdk.html) documentation.
 
 ## Topics
 
@@ -236,7 +239,7 @@ This service has one parameter:
 
 `sequence` (float64[]): 2D exposure sequence to set. Min: 0.1, Max: 999. Min Size: 1, Max Size: 5.
 
-### [set_2d_exposure_time](https://github.com/MechMindRobotics/mecheye_ros/blob/master/srv/Set2DExposureTime.srv)
+### [set_2d_exposure_time](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DExposureTime.srv)
 
 Invoke this service to set current 2D exposure time.  
 Only take effect when 2D exposure mode is `Timed`.
