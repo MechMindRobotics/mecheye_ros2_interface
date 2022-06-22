@@ -43,6 +43,7 @@ cd ~/ros_ws && colcon build
 - Change config in `~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.py`
   - save_file: `True` to enable save file, otherwise keep it as `False`
   - camera_ip: change to your camera ip address here (also remember to comment and uncomment the lines in `MechMindCamera.cpp` to connect to a specific camera)
+  - tf related arguments: using quaternion for rotation parameters, to be changed to your calibrated parameters.
   - at the moment, image save path can only be changed in source code `/mecheye_ros2_interface/src/MechMindCamera.cpp`.
   - remember to `colcon build` again after changing `*.cpp`.
 - Source the build workspace and use ros2 launch
