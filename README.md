@@ -9,39 +9,44 @@ This repository contains the official ROS2 interface for Mech-Eye camera.
 |   Package    |    Version    |
 | :----------: | :-----------: |
 |    OpenCV    |     >= 3      |
-|     PCL      | >= 1.7 or 1.8 |
-| Mech-Eye SDK |     1.5.2     |
+|     PCL      |     >= 1.8    |
+| Mech-Eye SDK |     1.6.0     |
 
 ### Install Mech-Eye SDK
 
-Download and install MechEyeApi_1.5.2 compatible with Ubuntu from this [link](https://www.mech-mind.com/download/camera-sdk.html).
+Download and install MechEyeApi_1.6.0 compatible with Ubuntu from this [link](https://www.mech-mind.com/download/camera-sdk.html).
 
-### Install ROS2 Galactic
+### Install ROS2
 
-This interface is tested on Ubuntu 20.04 with ROS2 Galactic. You can install ROS2 Galactic following this [page](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html)
+This interface is tested on Ubuntu 20.04 with ROS2 Galactic. 
 
-### Install OpenCV & PCL
+You can install ROS2 Galactic following this [page](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html).
 
+### Install OpenCV, PCL, colcon
+
+If you have installed 'ros-[distribution]-desktop' successfully, the apts below should be installed normally.
 ```bash
 sudo apt install libopencv-dev
-sudo apt install ros-galactic-cv-bridge
+sudo apt install ros-[distribution]-cv-bridge
 sudo apt install libpcl-dev
-sudo apt install ros-galactic-pcl-conversions
+sudo apt install ros-[distribution]-pcl-conversions
+sudo apt install python3-colcon-common-extensions
 ```
 
 ### Install the Interace
 
 ```bash
-mkdir -p ~/ros_ws/src && cd ~/ros_ws/src
+mkdir -p ~/colcon_ws/src && cd ~/colcon_ws/src
 git clone https://github.com/MechMindRobotics/mecheye_ros2_interface.git
-cd ~/ros_ws && colcon build
+cd ~/colcon_ws
+colcon build
 ```
 
 ## Brief intro to the interface
 
 - Interface functions can be found in the documentation inside [Mech-Eye SDK](https://www.mech-mind.com/download/camera-sdk.html).
-- Change config in `~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.py`
-  - save_file: `True` to enable save file, otherwise keep it as `False`
+- Change config in `~/colcon_ws/src/mecheye_ros2_interface/launch/start_camera.py`
+  - save_file: `True` to enable save file to "/tmp/xxx.png", otherwise keep it as `False`
   - camera_ip: change to your camera ip address here (also remember to comment and uncomment the lines in `MechMindCamera.cpp` to connect to a specific camera)
   - tf related arguments: using quaternion for rotation parameters, to be changed to your calibrated parameters.
   - at the moment, image save path can only be changed in source code `/mecheye_ros2_interface/src/MechMindCamera.cpp`.
@@ -49,21 +54,21 @@ cd ~/ros_ws && colcon build
 - Source the build workspace and use ros2 launch
 
   ```bash
-  source ~/ros_ws/install/setup.bash
-  ros2 launch ~/ros_ws/src/mecheye_ros2_interface/launch/start_camera.py 
+  source ~/colcon_ws/install/setup.bash
+  ros2 launch ~/colcon_ws/src/mecheye_ros2_interface/launch/start_camera.py 
   ```
 
   - Or use ros2 run
 
     ```bash
-    source ~/ros_ws/install/setup.bash
+    source ~/colcon_ws/install/setup.bash
     ros2 run mecheye_ros_interface start
     ```
 
 - Open a new terminal, source the workspace and call services
 
   ```bash
-  source ~/ros_ws/install/setup.bash
+  source ~/colcon_ws/install/setup.bash
   ros2 service call [/service_name] [mecheye_ros_interface/srv/ServiceName] "{parameter_name: parameter_value}"
   ```
 
@@ -213,6 +218,18 @@ Invoke this service to get the current signal minimum threshold for effective pi
 
 Invoke this service to get the current laser settings.
 
+### [get_uhp_settings](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetUhpSettings.srv)
+
+Invoke this service to get the current uhp settings.
+
+### [get_uhp_capture_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetUhpCaptureMode.srv)
+
+Invoke this service to get the current uhp capture mode.
+
+### [get_uhp_fringe_coding_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/GetUhpFringeCodingMode.srv)
+
+Invoke this service to get the current uhp fringe coding mode.
+
 ### [set_2d_expected_gray_value](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/Set2DExpectedGrayValue.srv)
 
 Invoke this service to set the expected image gray value.  
@@ -361,10 +378,36 @@ Invoke this service to set the current laser settings.
 
 This service has five parameters:
 
-`fringe_coding_mode` (string): Laser fringe coding mode to set. Options include 'Fast', and 'High'.  
+`fringe_coding_mode` (string): Laser fringe coding mode to set. Options include 'Fast', and 'Accurate'.  
 `frame_range_start` (int32): The laser scan field of view start position to set. Min: 0, Max: 100.  
 frameRangeEnd - frameRangeStart >= 25  
 `frame_range_end` (int32): The laser scan field of view end position to set. Min: 0, Max: 100.  
 frameRangeEnd - frameRangeStart >= 25  
 `frame_partition_count` (int32): Laser's scan partition number to set. Min: 1, Max: 4.  
 `power_level` (int32): Laser's power level to set. Min: 20, Max: 100.
+
+### [set_uhp_settings](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetUhpSettings.srv)
+
+Invoke this service to set the current uhp settings.
+
+This service has two parameters:
+
+`capture_mode` (string): Uhp capture mode to set. Options include 'Camera1', 'Camera2' and 'Merge'.  
+`fringe_coding_mode` (string): Uhp fringe coding mode to set. Options include 'Fast', and 'Accurate'.  
+
+### [set_uhp_capture_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetUhpCaptureMode.srv)
+
+Invoke this service to set the current uhp capture mode.
+
+This service has one parameter:
+
+`capture_mode` (string): Uhp capture mode to set. Options include 'Camera1', 'Camera2' and 'Merge'.  
+
+
+### [set_uhp_fringe_coding_mode](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/SetUhpFringeCodingMode.srv)
+
+Invoke this service to set the current uhp fringe coding mode.
+
+This service has one parameter:
+
+`fringe_coding_mode` (string): Uhp fringe coding mode to set. Options include 'Fast', and 'Accurate'.  
