@@ -32,6 +32,9 @@
 #include <mecheye_ros_interface/srv/get_fringe_contrast_threshold.hpp>
 #include <mecheye_ros_interface/srv/get_fringe_min_threshold.hpp>
 #include <mecheye_ros_interface/srv/get_laser_settings.hpp>
+#include <mecheye_ros_interface/srv/get_uhp_settings.hpp>
+#include <mecheye_ros_interface/srv/get_uhp_capture_mode.hpp>
+#include <mecheye_ros_interface/srv/get_uhp_fringe_coding_mode.hpp>
 #include <mecheye_ros_interface/srv/save_all_settings_to_user_sets.hpp>
 #include <mecheye_ros_interface/srv/set2_d_expected_gray_value.hpp>
 #include <mecheye_ros_interface/srv/set2_d_exposure_mode.hpp>
@@ -50,6 +53,9 @@
 #include <mecheye_ros_interface/srv/set_fringe_contrast_threshold.hpp>
 #include <mecheye_ros_interface/srv/set_fringe_min_threshold.hpp>
 #include <mecheye_ros_interface/srv/set_laser_settings.hpp>
+#include <mecheye_ros_interface/srv/set_uhp_settings.hpp>
+#include <mecheye_ros_interface/srv/set_uhp_capture_mode.hpp>
+#include <mecheye_ros_interface/srv/set_uhp_fringe_coding_mode.hpp>
 
 class MechMindCamera
 {
@@ -106,6 +112,9 @@ private:
     rclcpp::Service<mecheye_ros_interface::srv::GetFringeContrastThreshold>::SharedPtr get_fringe_contrast_threshold_service;
     rclcpp::Service<mecheye_ros_interface::srv::GetFringeMinThreshold>::SharedPtr get_fringe_min_threshold_service;
     rclcpp::Service<mecheye_ros_interface::srv::GetLaserSettings>::SharedPtr get_laser_settings_service;
+    rclcpp::Service<mecheye_ros_interface::srv::GetUhpSettings>::SharedPtr get_uhp_settings_service;
+    rclcpp::Service<mecheye_ros_interface::srv::GetUhpCaptureMode>::SharedPtr get_uhp_capture_mode_service;
+    rclcpp::Service<mecheye_ros_interface::srv::GetUhpFringeCodingMode>::SharedPtr get_uhp_fringe_coding_mode_service;
     rclcpp::Service<mecheye_ros_interface::srv::SaveAllSettingsToUserSets>::SharedPtr save_all_settings_to_user_sets_service;
     rclcpp::Service<mecheye_ros_interface::srv::Set2DExpectedGrayValue>::SharedPtr set_2d_expected_gray_value_service;
     rclcpp::Service<mecheye_ros_interface::srv::Set2DExposureMode>::SharedPtr set_2d_exposure_mode_service;
@@ -124,6 +133,10 @@ private:
     rclcpp::Service<mecheye_ros_interface::srv::SetFringeContrastThreshold>::SharedPtr set_fringe_contrast_threshold_service;
     rclcpp::Service<mecheye_ros_interface::srv::SetFringeMinThreshold>::SharedPtr set_fringe_min_threshold_service;
     rclcpp::Service<mecheye_ros_interface::srv::SetLaserSettings>::SharedPtr set_laser_settings_service;
+    rclcpp::Service<mecheye_ros_interface::srv::SetUhpSettings>::SharedPtr set_uhp_settings_service;
+    rclcpp::Service<mecheye_ros_interface::srv::SetUhpCaptureMode>::SharedPtr set_uhp_capture_mode_service;
+    rclcpp::Service<mecheye_ros_interface::srv::SetUhpFringeCodingMode>::SharedPtr set_uhp_fringe_coding_mode_service;
+
 
     void add_user_set_callback(const std::shared_ptr<mecheye_ros_interface::srv::AddUserSet::Request> req, std::shared_ptr<mecheye_ros_interface::srv::AddUserSet::Response> res);
     void capture_color_map_callback(const std::shared_ptr<mecheye_ros_interface::srv::CaptureColorMap::Request> req, std::shared_ptr<mecheye_ros_interface::srv::CaptureColorMap::Response> res);
@@ -153,6 +166,9 @@ private:
                                                 std::shared_ptr<mecheye_ros_interface::srv::GetFringeContrastThreshold::Response> res);
     void get_fringe_min_threshold_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetFringeMinThreshold::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetFringeMinThreshold::Response> res);
     void get_laser_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetLaserSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetLaserSettings::Response> res);
+    void get_uhp_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetUhpSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetUhpSettings::Response> res);
+    void get_uhp_capture_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetUhpCaptureMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetUhpCaptureMode::Response> res);
+    void get_uhp_fringe_coding_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetUhpFringeCodingMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetUhpFringeCodingMode::Response> res);
     void save_all_settings_to_user_sets_callback(const std::shared_ptr<mecheye_ros_interface::srv::SaveAllSettingsToUserSets::Request> req,
                                                  std::shared_ptr<mecheye_ros_interface::srv::SaveAllSettingsToUserSets::Response> res);
     void set_2d_expected_gray_value_callback(const std::shared_ptr<mecheye_ros_interface::srv::Set2DExpectedGrayValue::Request> req,
@@ -175,4 +191,8 @@ private:
                                                 std::shared_ptr<mecheye_ros_interface::srv::SetFringeContrastThreshold::Response> res);
     void set_fringe_min_threshold_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetFringeMinThreshold::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetFringeMinThreshold::Response> res);
     void set_laser_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetLaserSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetLaserSettings::Response> res);
+
+    void set_uhp_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetUhpSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetUhpSettings::Response> res);
+    void set_uhp_capture_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetUhpCaptureMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetUhpCaptureMode::Response> res);
+    void set_uhp_fringe_coding_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetUhpFringeCodingMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetUhpFringeCodingMode::Response> res);
 };

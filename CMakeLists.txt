@@ -39,6 +39,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetFringeContrastThreshold.srv"
   "srv/SetFringeMinThreshold.srv"
   "srv/SetLaserSettings.srv"
+  "srv/SaveAllSettingsToUserSets.srv"
+  "srv/Set2DExpectedGrayValue.srv"
+  "srv/Set2DExposureMode.srv"
+  "srv/Set2DExposureSequence.srv"
+  "srv/SetUhpSettings.srv"
+  "srv/SetUhpCaptureMode.srv"
+  "srv/SetUhpFringeCodingMode.srv"
   "srv/AddUserSet.srv"
   "srv/CaptureColorMap.srv"
   "srv/CaptureColorPointCloud.srv"
@@ -64,10 +71,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetFringeContrastThreshold.srv"
   "srv/GetFringeMinThreshold.srv"
   "srv/GetLaserSettings.srv"
-  "srv/SaveAllSettingsToUserSets.srv"
-  "srv/Set2DExpectedGrayValue.srv"
-  "srv/Set2DExposureMode.srv"
-  "srv/Set2DExposureSequence.srv"
+  "srv/GetUhpSettings.srv"
+  "srv/GetUhpCaptureMode.srv"
+  "srv/GetUhpFringeCodingMode.srv"
+
   DEPENDENCIES
   std_msgs
   sensor_msgs

@@ -14,13 +14,13 @@ MechMindCamera::MechMindCamera()
 {
     node = rclcpp::Node::make_shared("mechmind_camera_publisher_service");
 
-    node->declare_parameter("camera_ip");
-    node->declare_parameter("save_file");
-    node->declare_parameter("use_external_intri");
-    node->declare_parameter("fx");
-    node->declare_parameter("fy");
-    node->declare_parameter("u");
-    node->declare_parameter("v");
+    node->declare_parameter<std::string>("camera_ip", "");
+    node->declare_parameter<bool>("save_file", false);
+    node->declare_parameter<bool>("use_external_intri",false);
+    node->declare_parameter<double>("fx", 0.0);
+    node->declare_parameter<double>("fy", 0.0);
+    node->declare_parameter<double>("u", 0.0);
+    node->declare_parameter<double>("v", 0.0);
 
     node->get_parameter("camera_ip", camera_ip);
     node->get_parameter("save_file", save_file);
@@ -43,7 +43,7 @@ MechMindCamera::MechMindCamera()
 
     // mmind::api::ErrorStatus status;
     // mmind::api::MechEyeDeviceInfo info;
-    // info.firmwareVersion = "1.5.2";
+    // info.firmwareVersion = "1.6.0";
     // info.ipAddress = camera_ip;
     // info.port = 5577;
     // status = device.connect(info);
@@ -60,10 +60,14 @@ MechMindCamera::MechMindCamera()
 
     if (use_external_intri)
     {
-        intri.cameraMatrix[0] = fx;
-        intri.cameraMatrix[1] = fy;
-        intri.cameraMatrix[2] = u;
-        intri.cameraMatrix[3] = v;
+        intri.textureCameraIntri.cameraMatrix[0] = fx;
+        intri.textureCameraIntri.cameraMatrix[1] = fy;
+        intri.textureCameraIntri.cameraMatrix[2] = u;
+        intri.textureCameraIntri.cameraMatrix[3] = v;
+        intri.depthCameraIntri.cameraMatrix[0] = fx;
+        intri.depthCameraIntri.cameraMatrix[1] = fy;
+        intri.depthCameraIntri.cameraMatrix[2] = u;
+        intri.depthCameraIntri.cameraMatrix[3] = v; 
     }
     else
     {
@@ -112,6 +116,12 @@ MechMindCamera::MechMindCamera()
         node->create_service<mecheye_ros_interface::srv::GetFringeMinThreshold>("get_fringe_min_threshold", std::bind(&MechMindCamera::get_fringe_min_threshold_callback, this, std::placeholders::_1, std::placeholders::_2));
     get_laser_settings_service =
         node->create_service<mecheye_ros_interface::srv::GetLaserSettings>("get_laser_settings", std::bind(&MechMindCamera::get_laser_settings_callback, this, std::placeholders::_1, std::placeholders::_2));
+    get_uhp_settings_service = 
+        node->create_service<mecheye_ros_interface::srv::GetUhpSettings>("get_uhp_settings", std::bind(&MechMindCamera::get_uhp_settings_callback, this, std::placeholders::_1, std::placeholders::_2));
+    get_uhp_capture_mode_service = 
+        node->create_service<mecheye_ros_interface::srv::GetUhpCaptureMode>("get_uhp_capture_mode", std::bind(&MechMindCamera::get_uhp_capture_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+    get_uhp_fringe_coding_mode_service = 
+        node->create_service<mecheye_ros_interface::srv::GetUhpFringeCodingMode>("get_uhp_fringe_coding_mode_service", std::bind(&MechMindCamera::get_uhp_fringe_coding_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
     save_all_settings_to_user_sets_service = node->create_service<mecheye_ros_interface::srv::SaveAllSettingsToUserSets>(
         "save_all_settings_to_user_sets", std::bind(&MechMindCamera::save_all_settings_to_user_sets_callback, this, std::placeholders::_1, std::placeholders::_2));
     set_2d_expected_gray_value_service =
@@ -143,6 +153,13 @@ MechMindCamera::MechMindCamera()
         node->create_service<mecheye_ros_interface::srv::SetFringeMinThreshold>("set_fringe_min_threshold", std::bind(&MechMindCamera::set_fringe_min_threshold_callback, this, std::placeholders::_1, std::placeholders::_2));
     set_laser_settings_service =
         node->create_service<mecheye_ros_interface::srv::SetLaserSettings>("set_laser_settings", std::bind(&MechMindCamera::set_laser_settings_callback, this, std::placeholders::_1, std::placeholders::_2));
+    set_uhp_settings_service = 
+        node->create_service<mecheye_ros_interface::srv::SetUhpSettings>("set_uhp_settings", std::bind(&MechMindCamera::set_uhp_settings_callback, this, std::placeholders::_1, std::placeholders::_2));
+    set_uhp_capture_mode_service = 
+        node->create_service<mecheye_ros_interface::srv::SetUhpCaptureMode>("set_uhp_capture_mode", std::bind(&MechMindCamera::set_uhp_capture_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+    set_uhp_fringe_coding_mode_service = 
+        node->create_service<mecheye_ros_interface::srv::SetUhpFringeCodingMode>("set_uhp_fringe_coding_mode", std::bind(&MechMindCamera::set_uhp_fringe_coding_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+
 }
 
 void MechMindCamera::publishColorMap(mmind::api::ColorMap &colorMap)
@@ -174,7 +191,7 @@ void MechMindCamera::publishDepthMap(mmind::api::DepthMap &depthMap)
     pub_depth->publish(ros_depth);
     publishCameraInfo(ros_depth.header, depthMap.width(), depthMap.height());
     if (save_file)
-        saveMap(depthMap, "/tmp/mechmind_depth.png");
+        saveMap(depthMap, "/tmp/mechmind_depth.tiff");
 }
 
 void MechMindCamera::publishPointCloud(mmind::api::PointXYZMap &pointXYZMap)
@@ -213,14 +230,14 @@ void MechMindCamera::publishCameraInfo(const std_msgs::msg::Header &header, int 
     camera_info.width = width;
     camera_info.distortion_model = "plumb_bob";
 
-    camera_info.d = std::vector<double>(intri.distCoeffs, intri.distCoeffs + 5);
+    camera_info.d = std::vector<double>(intri.textureCameraIntri.distortion, intri.textureCameraIntri.distortion + 5);
 
-    std::vector<double> K{intri.cameraMatrix[0],
+    std::vector<double> K{intri.textureCameraIntri.cameraMatrix[0],
                           0.0,
-                          intri.cameraMatrix[2],
+                          intri.textureCameraIntri.cameraMatrix[2],
                           0.0,
-                          intri.cameraMatrix[1],
-                          intri.cameraMatrix[3],
+                          intri.textureCameraIntri.cameraMatrix[1],
+                          intri.textureCameraIntri.cameraMatrix[3],
                           0.0,
                           0.0,
                           1.0};
@@ -235,13 +252,13 @@ void MechMindCamera::publishCameraInfo(const std_msgs::msg::Header &header, int 
         camera_info.r[i] = R[i];
     }
 
-    std::vector<double> P{intri.cameraMatrix[0],
+    std::vector<double> P{intri.textureCameraIntri.cameraMatrix[0],
                           0.0,
-                          intri.cameraMatrix[2],
+                          intri.textureCameraIntri.cameraMatrix[2],
                           0.0,
                           0.0,
-                          intri.cameraMatrix[1],
-                          intri.cameraMatrix[3],
+                          intri.textureCameraIntri.cameraMatrix[1],
+                          intri.textureCameraIntri.cameraMatrix[3],
                           0.0,
                           0.0,
                           0.0,
@@ -534,7 +551,7 @@ void MechMindCamera::get_fringe_min_threshold_callback(const std::shared_ptr<mec
 
 void MechMindCamera::get_laser_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetLaserSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetLaserSettings::Response> res)
 {
-    mmind::api::LaserSettings laserSettings{2, -1, -1, -1, -1};
+    mmind::api::LaserSettings laserSettings;
     mmind::api::ErrorStatus status = device.getLaserSettings(laserSettings);
     showError(status);
     switch (laserSettings.FringeCodingMode)
@@ -543,8 +560,8 @@ void MechMindCamera::get_laser_settings_callback(const std::shared_ptr<mecheye_r
         res->fringe_coding_mode = "Fast";
         break;
 
-    case mmind::api::LaserSettings::LaserFringeCodingMode::High:
-        res->fringe_coding_mode = "High";
+    case mmind::api::LaserSettings::LaserFringeCodingMode::Accurate:
+        res->fringe_coding_mode = "Accurate";
         break;
 
     default:
@@ -555,6 +572,91 @@ void MechMindCamera::get_laser_settings_callback(const std::shared_ptr<mecheye_r
     res->frame_range_end = laserSettings.FrameRangeEnd;
     res->frame_partition_count = laserSettings.FramePartitionCount;
     res->power_level = laserSettings.PowerLevel;
+}
+
+void MechMindCamera::get_uhp_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetUhpSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetUhpSettings::Response> res)
+{
+    mmind::api::UhpSettings uhpSettings;
+    mmind::api::ErrorStatus status = device.getUhpSettings(uhpSettings);
+    showError(status);
+    switch (uhpSettings.CaptureMode)
+    {
+    case mmind::api::UhpSettings::UhpCaptureMode::Camera1:
+        res->capture_mode = "Camera1";
+        break;
+
+    case mmind::api::UhpSettings::UhpCaptureMode::Camera2:
+        res->capture_mode = "Camera2";
+        break;
+
+    case mmind::api::UhpSettings::UhpCaptureMode::Merge:
+        res->capture_mode = "Merge";
+        break;
+    
+    default:
+        res->capture_mode = "";
+        break;
+    }
+    switch (uhpSettings.FringeCodingMode)
+    {
+    case mmind::api::UhpSettings::UhpFringeCodingMode::Fast:
+        res->fringe_coding_mode = "Fast";
+        break;
+
+    case mmind::api::UhpSettings::UhpFringeCodingMode::Accurate:
+        res->fringe_coding_mode = "Accurate";
+        break;
+
+    default:
+        res->fringe_coding_mode = "";
+        break;
+    }
+}
+
+void MechMindCamera::get_uhp_capture_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetUhpCaptureMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetUhpCaptureMode::Response> res)
+{
+    mmind::api::UhpSettings::UhpCaptureMode mode;
+    mmind::api::ErrorStatus status = device.getUhpCaptureMode(mode);
+    showError(status);
+    switch (mode)
+    {
+    case mmind::api::UhpSettings::UhpCaptureMode::Camera1:
+        res->capture_mode = "Camera1";
+        break;
+
+    case mmind::api::UhpSettings::UhpCaptureMode::Camera2:
+        res->capture_mode = "Camera2";
+        break;
+
+    case mmind::api::UhpSettings::UhpCaptureMode::Merge:
+        res->capture_mode = "Merge";
+        break;
+    
+    default:
+        res->capture_mode = "";
+        break;
+    }
+}
+
+void MechMindCamera::get_uhp_fringe_coding_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetUhpFringeCodingMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetUhpFringeCodingMode::Response> res)
+{
+    mmind::api::UhpSettings::UhpFringeCodingMode mode;
+    mmind::api::ErrorStatus status = device.getUhpFringeCodingMode(mode);
+    showError(status);
+    switch (mode)
+    {
+    case mmind::api::UhpSettings::UhpFringeCodingMode::Fast:
+        res->fringe_coding_mode = "Fast";
+        break;
+
+    case mmind::api::UhpSettings::UhpFringeCodingMode::Accurate:
+        res->fringe_coding_mode = "Accurate";
+        break;
+    
+    default:
+        res->fringe_coding_mode = "";
+        break;
+    }
 }
 
 void MechMindCamera::save_all_settings_to_user_sets_callback(const std::shared_ptr<mecheye_ros_interface::srv::SaveAllSettingsToUserSets::Request> req,
@@ -744,9 +846,63 @@ void MechMindCamera::set_fringe_min_threshold_callback(const std::shared_ptr<mec
 
 void MechMindCamera::set_laser_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetLaserSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetLaserSettings::Response> res)
 {
-    mmind::api::LaserSettings laserSettings{req->fringe_coding_mode == "Fast" ? mmind::api::LaserSettings::LaserFringeCodingMode::Fast : mmind::api::LaserSettings::LaserFringeCodingMode::High, req->frame_range_start,
-                                            req->frame_range_end, req->frame_partition_count, req->power_level};
+    mmind::api::LaserSettings laserSettings{
+        req->fringe_coding_mode == "Fast" ? mmind::api::LaserSettings::LaserFringeCodingMode::Fast : mmind::api::LaserSettings::LaserFringeCodingMode::Accurate, req->frame_range_start,
+                                            req->frame_range_end, req->frame_partition_count, req->power_level
+                                            };
     mmind::api::ErrorStatus status = device.setLaserSettings(laserSettings);
+    showError(status);
+    res->error_code = status.errorCode;
+    res->error_description = status.errorDescription.c_str();
+}
+
+void MechMindCamera::set_uhp_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetUhpSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetUhpSettings::Response> res)
+{
+    mmind::api::UhpSettings uhpSettings{
+        req->capture_mode == "Camera1" ? mmind::api::UhpSettings::UhpCaptureMode::Camera1 : (req->capture_mode == "Camera2" ? mmind::api::UhpSettings::UhpCaptureMode::Camera2 : mmind::api::UhpSettings::UhpCaptureMode::Merge),
+        req->fringe_coding_mode == "Fast" ? mmind::api::UhpSettings::UhpFringeCodingMode::Fast : mmind::api::UhpSettings::UhpFringeCodingMode::Accurate
+        };
+    mmind::api::ErrorStatus status = device.setUhpSettings(uhpSettings);
+    showError(status);
+    res->error_code = status.errorCode;
+    res->error_description = status.errorDescription.c_str();
+}
+
+void MechMindCamera::set_uhp_capture_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetUhpCaptureMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetUhpCaptureMode::Response> res)
+{
+    mmind::api::UhpSettings::UhpCaptureMode mode;
+    if (req->capture_mode == "Camera1")
+        mode = mmind::api::UhpSettings::UhpCaptureMode::Camera1;
+    else if (req->capture_mode == "Camera2")
+        mode = mmind::api::UhpSettings::UhpCaptureMode::Camera2;
+    else if (req->capture_mode == "Merge")
+        mode = mmind::api::UhpSettings::UhpCaptureMode::Merge;
+    else
+    {
+        res->error_code = -4;
+        res->error_description = "Invalid parameter";
+        return;
+    }
+    mmind::api::ErrorStatus status = device.setUhpCaptureMode(mode);
+    showError(status);
+    res->error_code = status.errorCode;
+    res->error_description = status.errorDescription.c_str();
+}
+
+void MechMindCamera::set_uhp_fringe_coding_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetUhpFringeCodingMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetUhpFringeCodingMode::Response> res)
+{
+    mmind::api::UhpSettings::UhpFringeCodingMode mode;
+    if (req->fringe_coding_mode == "Fast")
+        mode = mmind::api::UhpSettings::UhpFringeCodingMode::Fast;
+    else if (req->fringe_coding_mode == "Accurate")
+        mode = mmind::api::UhpSettings::UhpFringeCodingMode::Accurate;
+    else
+    {
+        res->error_code = -4;
+        res->error_description = "Invalid parameter";
+        return;
+    }
+    mmind::api::ErrorStatus status = device.setUhpFringeCodingMode(mode);
     showError(status);
     res->error_code = status.errorCode;
     res->error_description = status.errorDescription.c_str();
