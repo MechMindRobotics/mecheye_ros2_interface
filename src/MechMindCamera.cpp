@@ -122,6 +122,15 @@ MechMindCamera::MechMindCamera()
         node->create_service<mecheye_ros_interface::srv::GetUhpCaptureMode>("get_uhp_capture_mode", std::bind(&MechMindCamera::get_uhp_capture_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
     get_uhp_fringe_coding_mode_service = 
         node->create_service<mecheye_ros_interface::srv::GetUhpFringeCodingMode>("get_uhp_fringe_coding_mode_service", std::bind(&MechMindCamera::get_uhp_fringe_coding_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+        
+    get_projector_fringe_coding_mode_service =
+        node->create_service<mecheye_ros_interface::srv::GetProjectorFringeCodingMode>("get_projector_fringe_coding_mode", std::bind(&MechMindCamera::get_projector_fringe_coding_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+    get_projector_power_level_service =
+        node->create_service<mecheye_ros_interface::srv::GetProjectorPowerLevel>("get_projector_power_level", std::bind(&MechMindCamera::get_projector_power_level_callback, this, std::placeholders::_1, std::placeholders::_2));
+    get_projector_anti_flicker_mode_service =
+        node->create_service<mecheye_ros_interface::srv::GetProjectorAntiFlickerMode>("get_projector_anti_flicker_mode", std::bind(&MechMindCamera::get_projector_anti_flicker_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+    
+    
     save_all_settings_to_user_sets_service = node->create_service<mecheye_ros_interface::srv::SaveAllSettingsToUserSets>(
         "save_all_settings_to_user_sets", std::bind(&MechMindCamera::save_all_settings_to_user_sets_callback, this, std::placeholders::_1, std::placeholders::_2));
     set_2d_expected_gray_value_service =
@@ -160,6 +169,13 @@ MechMindCamera::MechMindCamera()
     set_uhp_fringe_coding_mode_service = 
         node->create_service<mecheye_ros_interface::srv::SetUhpFringeCodingMode>("set_uhp_fringe_coding_mode", std::bind(&MechMindCamera::set_uhp_fringe_coding_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
 
+    set_projector_fringe_coding_mode_service =
+        node->create_service<mecheye_ros_interface::srv::SetProjectorFringeCodingMode>("set_projector_fringe_coding_mode", std::bind(&MechMindCamera::set_projector_fringe_coding_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+    set_projector_power_level_service =
+        node->create_service<mecheye_ros_interface::srv::SetProjectorPowerLevel>("set_projector_power_level", std::bind(&MechMindCamera::set_projector_power_level_callback, this, std::placeholders::_1, std::placeholders::_2));
+    set_projector_anti_flicker_mode_service =
+        node->create_service<mecheye_ros_interface::srv::SetProjectorAntiFlickerMode>("set_projector_anti_flicker_mode", std::bind(&MechMindCamera::set_projector_anti_flicker_mode_callback, this, std::placeholders::_1, std::placeholders::_2));
+    
 }
 
 void MechMindCamera::publishColorMap(mmind::api::ColorMap &colorMap)
@@ -554,7 +570,7 @@ void MechMindCamera::get_laser_settings_callback(const std::shared_ptr<mecheye_r
     mmind::api::LaserSettings laserSettings;
     mmind::api::ErrorStatus status = device.getLaserSettings(laserSettings);
     showError(status);
-    switch (laserSettings.FringeCodingMode)
+    switch (laserSettings.fringeCodingMode)
     {
     case mmind::api::LaserSettings::LaserFringeCodingMode::Fast:
         res->fringe_coding_mode = "Fast";
@@ -568,10 +584,10 @@ void MechMindCamera::get_laser_settings_callback(const std::shared_ptr<mecheye_r
         res->fringe_coding_mode = "";
         break;
     }
-    res->frame_range_start = laserSettings.FrameRangeStart;
-    res->frame_range_end = laserSettings.FrameRangeEnd;
-    res->frame_partition_count = laserSettings.FramePartitionCount;
-    res->power_level = laserSettings.PowerLevel;
+    res->frame_range_start = laserSettings.frameRangeStart;
+    res->frame_range_end = laserSettings.frameRangeEnd;
+    res->frame_partition_count = laserSettings.framePartitionCount;
+    res->power_level = laserSettings.powerLevel;
 }
 
 void MechMindCamera::get_uhp_settings_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetUhpSettings::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetUhpSettings::Response> res)
@@ -579,7 +595,7 @@ void MechMindCamera::get_uhp_settings_callback(const std::shared_ptr<mecheye_ros
     mmind::api::UhpSettings uhpSettings;
     mmind::api::ErrorStatus status = device.getUhpSettings(uhpSettings);
     showError(status);
-    switch (uhpSettings.CaptureMode)
+    switch (uhpSettings.captureMode)
     {
     case mmind::api::UhpSettings::UhpCaptureMode::Camera1:
         res->capture_mode = "Camera1";
@@ -597,7 +613,7 @@ void MechMindCamera::get_uhp_settings_callback(const std::shared_ptr<mecheye_ros
         res->capture_mode = "";
         break;
     }
-    switch (uhpSettings.FringeCodingMode)
+    switch (uhpSettings.fringeCodingMode)
     {
     case mmind::api::UhpSettings::UhpFringeCodingMode::Fast:
         res->fringe_coding_mode = "Fast";
@@ -658,6 +674,78 @@ void MechMindCamera::get_uhp_fringe_coding_mode_callback(const std::shared_ptr<m
         break;
     }
 }
+
+
+void MechMindCamera::get_projector_fringe_coding_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetProjectorFringeCodingMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetProjectorFringeCodingMode::Response> res)
+{
+    mmind::api::ProjectorSettings::FringeCodingMode mode;
+    mmind::api::ErrorStatus status = device.getProjectorFringeCodingMode(mode);
+    showError(status);
+    switch (mode)
+    {
+    case mmind::api::ProjectorSettings::FringeCodingMode::Fast:
+        res->value = "Fast";
+        break;
+
+    case mmind::api::ProjectorSettings::FringeCodingMode::Accurate:
+        res->value = "Accurate";
+        break;
+
+    default:
+        res->value = "";
+        break;
+    }
+}
+void MechMindCamera::get_projector_power_level_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetProjectorPowerLevel::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetProjectorPowerLevel::Response> res)
+{
+    mmind::api::ProjectorSettings::PowerLevel mode;
+    mmind::api::ErrorStatus status = device.getProjectorPowerLevel(mode);
+    showError(status);
+    switch (mode)
+    {
+    case mmind::api::ProjectorSettings::PowerLevel::High:
+        res->value = "High";
+        break;
+
+    case mmind::api::ProjectorSettings::PowerLevel::Normal:
+        res->value = "Normal";
+        break;
+
+    case mmind::api::ProjectorSettings::PowerLevel::Low:
+        res->value = "Low";
+        break;
+
+    default:
+        res->value = "";
+        break;
+    }
+}
+void MechMindCamera::get_projector_anti_flicker_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::GetProjectorAntiFlickerMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::GetProjectorAntiFlickerMode::Response> res)
+{
+    mmind::api::ProjectorSettings::AntiFlickerMode mode;
+    mmind::api::ErrorStatus status = device.getProjectorAntiFlickerMode(mode);
+    showError(status);
+    switch (mode)
+    {
+    case mmind::api::ProjectorSettings::AntiFlickerMode::Off:
+        res->value = "Off";
+        break;
+
+    case mmind::api::ProjectorSettings::AntiFlickerMode::AC50Hz:
+        res->value = "AC50Hz";
+        break;
+
+    case mmind::api::ProjectorSettings::AntiFlickerMode::AC60Hz:
+        res->value = "AC60Hz";
+        break;
+
+    default:
+        res->value = "";
+        break;
+    }
+}
+
+
 
 void MechMindCamera::save_all_settings_to_user_sets_callback(const std::shared_ptr<mecheye_ros_interface::srv::SaveAllSettingsToUserSets::Request> req,
                                                              std::shared_ptr<mecheye_ros_interface::srv::SaveAllSettingsToUserSets::Response> res) {}
@@ -903,6 +991,67 @@ void MechMindCamera::set_uhp_fringe_coding_mode_callback(const std::shared_ptr<m
         return;
     }
     mmind::api::ErrorStatus status = device.setUhpFringeCodingMode(mode);
+    showError(status);
+    res->error_code = status.errorCode;
+    res->error_description = status.errorDescription.c_str();
+}
+
+
+
+void MechMindCamera::set_projector_fringe_coding_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetProjectorFringeCodingMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetProjectorFringeCodingMode::Response> res)
+{
+    mmind::api::ProjectorSettings::FringeCodingMode mode;
+    if (req->value == "Fast")
+        mode = mmind::api::ProjectorSettings::FringeCodingMode::Fast;
+    else if (req->value == "Accurate")
+        mode = mmind::api::ProjectorSettings::FringeCodingMode::Accurate;
+    else
+    {
+        res->error_code = -4;
+        res->error_description = "Invalid parameter";
+        return;
+    }
+    mmind::api::ErrorStatus status = device.setProjectorFringeCodingMode(mode);
+    showError(status);
+    res->error_code = status.errorCode;
+    res->error_description = status.errorDescription.c_str();
+}
+void MechMindCamera::set_projector_power_level_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetProjectorPowerLevel::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetProjectorPowerLevel::Response> res)
+{
+    mmind::api::ProjectorSettings::PowerLevel mode;
+    if (req->value == "High")
+        mode = mmind::api::ProjectorSettings::PowerLevel::High;
+    else if (req->value == "Normal")
+        mode = mmind::api::ProjectorSettings::PowerLevel::Normal;
+    else if (req->value == "Low")
+        mode = mmind::api::ProjectorSettings::PowerLevel::Low;
+    else
+    {
+        res->error_code = -4;
+        res->error_description = "Invalid parameter";
+        return;
+    }
+    mmind::api::ErrorStatus status = device.setProjectorPowerLevel(mode);
+    showError(status);
+    res->error_code = status.errorCode;
+    res->error_description = status.errorDescription.c_str();
+}
+void MechMindCamera::set_projector_anti_flicker_mode_callback(const std::shared_ptr<mecheye_ros_interface::srv::SetProjectorAntiFlickerMode::Request> req, std::shared_ptr<mecheye_ros_interface::srv::SetProjectorAntiFlickerMode::Response> res)
+{
+    mmind::api::ProjectorSettings::AntiFlickerMode mode;
+    if (req->value == "Off")
+        mode = mmind::api::ProjectorSettings::AntiFlickerMode::Off;
+    else if (req->value == "AC50Hz")
+        mode = mmind::api::ProjectorSettings::AntiFlickerMode::AC50Hz;
+    else if (req->value == "AC60Hz")
+        mode = mmind::api::ProjectorSettings::AntiFlickerMode::AC60Hz;
+    else
+    {
+        res->error_code = -4;
+        res->error_description = "Invalid parameter";
+        return;
+    }
+    mmind::api::ErrorStatus status = device.setProjectorAntiFlickerMode(mode);
     showError(status);
     res->error_code = status.errorCode;
     res->error_description = status.errorDescription.c_str();

@@ -1,0 +1,5 @@
+# Off AC50Hz AC60Hz
+string value
+---
+int32 error_code
+string error_description

@@ -46,6 +46,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetUhpSettings.srv"
   "srv/SetUhpCaptureMode.srv"
   "srv/SetUhpFringeCodingMode.srv"
+  "srv/SetProjectorFringeCodingMode.srv"
+  "srv/SetProjectorPowerLevel.srv"
+  "srv/SetProjectorAntiFlickerMode.srv"
   "srv/AddUserSet.srv"
   "srv/CaptureColorMap.srv"
   "srv/CaptureColorPointCloud.srv"
@@ -74,6 +77,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetUhpSettings.srv"
   "srv/GetUhpCaptureMode.srv"
   "srv/GetUhpFringeCodingMode.srv"
+  "srv/GetProjectorFringeCodingMode.srv"
+  "srv/GetProjectorPowerLevel.srv"
+  "srv/GetProjectorAntiFlickerMode.srv"
 
   DEPENDENCIES
   std_msgs
