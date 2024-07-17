@@ -12,6 +12,7 @@ find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(pcl_conversions REQUIRED PATHs /home/tjl/pcl_conversions_ws/install/)
 
 ## Find ament and any ament packages
 find_package(ament_cmake REQUIRED)
@@ -25,61 +26,36 @@ find_package(tf2 REQUIRED)
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "srv/Set2DExposureTime.srv"
-  "srv/Set2DROI.srv"
-  "srv/Set2DSharpenFactor.srv"
-  "srv/Set2DToneMappingEnable.srv"
-  "srv/Set3DExposure.srv"
-  "srv/Set3DGain.srv"
-  "srv/Set3DROI.srv"
-  "srv/SetCloudOutlierFilterMode.srv"
-  "srv/SetCloudSmoothMode.srv"
   "srv/SetCurrentUserSet.srv"
-  "srv/SetDepthRange.srv"
-  "srv/SetFringeContrastThreshold.srv"
-  "srv/SetFringeMinThreshold.srv"
-  "srv/SetLaserSettings.srv"
   "srv/SaveAllSettingsToUserSets.srv"
-  "srv/Set2DExpectedGrayValue.srv"
-  "srv/Set2DExposureMode.srv"
-  "srv/Set2DExposureSequence.srv"
-  "srv/SetUhpSettings.srv"
-  "srv/SetUhpCaptureMode.srv"
-  "srv/SetUhpFringeCodingMode.srv"
-  "srv/SetProjectorFringeCodingMode.srv"
-  "srv/SetProjectorPowerLevel.srv"
-  "srv/SetProjectorAntiFlickerMode.srv"
   "srv/AddUserSet.srv"
-  "srv/CaptureColorMap.srv"
-  "srv/CaptureColorPointCloud.srv"
+
+  "srv/CaptureColorImage.srv"
+  "srv/CaptureStereoColorImages.srv"
+  "srv/CaptureTexturedPointCloud.srv"
   "srv/CaptureDepthMap.srv"
   "srv/CapturePointCloud.srv"
+
   "srv/DeleteUserSet.srv"
   "srv/DeviceInfo.srv"
-  "srv/Get2DExpectedGrayValue.srv"
-  "srv/Get2DExposureMode.srv"
-  "srv/Get2DExposureSequence.srv"
-  "srv/Get2DExposureTime.srv"
-  "srv/Get2DROI.srv"
-  "srv/Get2DSharpenFactor.srv"
-  "srv/Get2DToneMappingEnable.srv"
-  "srv/Get3DExposure.srv"
-  "srv/Get3DGain.srv"
-  "srv/Get3DROI.srv"
   "srv/GetAllUserSets.srv"
-  "srv/GetCloudOutlierFilterMode.srv"
-  "srv/GetCloudSmoothMode.srv"
   "srv/GetCurrentUserSet.srv"
-  "srv/GetDepthRange.srv"
-  "srv/GetFringeContrastThreshold.srv"
-  "srv/GetFringeMinThreshold.srv"
-  "srv/GetLaserSettings.srv"
-  "srv/GetUhpSettings.srv"
-  "srv/GetUhpCaptureMode.srv"
-  "srv/GetUhpFringeCodingMode.srv"
-  "srv/GetProjectorFringeCodingMode.srv"
-  "srv/GetProjectorPowerLevel.srv"
-  "srv/GetProjectorAntiFlickerMode.srv"
+
+  "srv/SetIntParameter.srv"
+  "srv/GetIntParameter.srv"
+  "srv/SetRangeParameter.srv"
+  "srv/GetRangeParameter.srv"
+  "srv/SetBoolParameter.srv"
+  "srv/GetBoolParameter.srv"
+  "srv/SetEnumParameter.srv"
+  "srv/GetEnumParameter.srv"
+  "srv/SetFloatParameter.srv"
+  "srv/GetFloatParameter.srv"
+  "srv/SetFloatArrayParameter.srv"
+  "srv/GetFloatArrayParameter.srv"
+  "srv/SetROIParameter.srv"
+  "srv/GetROIParameter.srv"
+  
 
   DEPENDENCIES
   std_msgs
@@ -107,6 +83,7 @@ ament_target_dependencies(start
     sensor_msgs
     tf2
     rosidl_default_generators
+    pcl_conversions
 )
 
 # aux_source_directory(src SRC_LIST)
