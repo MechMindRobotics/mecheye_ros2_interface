@@ -6,7 +6,7 @@ If you have any questions or have anything to share, feel free to post on the [M
 
 ## Prerequisites
 
-In order to use the ROS 1 interface, the following prerequisites must be satisfied:
+In order to use the ROS 2 interface, the following prerequisites must be satisfied:
 
 * Ubuntu version: 22.04 recommended
 * ROS version: [ROS Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html) has been tested to work with this interface.
@@ -37,13 +37,13 @@ In order to use the ROS 1 interface, the following prerequisites must be satisfi
 
 ### Install Dependencies
 
-If you have installed "ros-noetic-desktop" successfully, execute the following commands to install the dependencies.
+If you have installed "ros-humble-desktop" successfully, execute the following commands to install the dependencies.
 
 ```bash
 sudo apt install libopencv-dev
-sudo apt install ros-noetic-cv-bridge
+sudo apt install ros-humble-cv-bridge
 sudo apt install libpcl-dev
-sudo apt install ros-noetic-pcl-conversions
+sudo apt install ros-humble-pcl-conversions
 sudo apt install python3-colcon-common-extensions
 ```
 
@@ -129,14 +129,14 @@ The following topics are provided:
 
 ### Data Acquisition
 
-#### [capture_color_image](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/CaptureColorMap.srv)
+#### [capture_color_image](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/CaptureColorImage.srv)
 
 Invoke this service to obtain a 2D image.
 
 Example:
 
   ```bash
-  ros2 service call /capture_color_image mecheye_ros_interface/srv/CaptureColorMap
+  ros2 service call /capture_color_image mecheye_ros_interface/srv/CaptureColorImage
   ```
 
 #### [capture_depth_map](https://github.com/MechMindRobotics/mecheye_ros2_interface/blob/master/srv/CaptureDepthMap.srv)
