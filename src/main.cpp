@@ -1,7 +1,5 @@
 #include <csignal>
 #include <MechMindCamera.h>
-#include "MechMindCamera.cpp"
-#include <area_scan_3d_camera/api_util.h>
 
 void signalHandler(int signum) { rclcpp::shutdown(); }
 

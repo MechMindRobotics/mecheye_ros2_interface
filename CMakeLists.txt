@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 project (mecheye_ros_interface)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARDREQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/jsoncpp")
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 find_package(PCL REQUIRED)
@@ -12,7 +10,7 @@ find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-find_package(pcl_conversions REQUIRED PATHs /home/tjl/pcl_conversions_ws/install/)
+find_package(pcl_conversions REQUIRED)
 
 ## Find ament and any ament packages
 find_package(ament_cmake REQUIRED)
@@ -22,8 +20,6 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
-
-pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetCurrentUserSet.srv"
@@ -55,7 +51,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetFloatArrayParameter.srv"
   "srv/SetROIParameter.srv"
   "srv/GetROIParameter.srv"
-  
 
   DEPENDENCIES
   std_msgs
@@ -74,7 +69,8 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
 link_directories(/opt/mech-mind/mech-eye-sdk/lib)
 
-add_executable(start src/main.cpp)
+aux_source_directory(src SRC_LIST)
+add_executable(start ${SRC_LIST})
 ament_target_dependencies(start
     cv_bridge
     image_transport
@@ -91,10 +87,8 @@ ament_target_dependencies(start
 target_link_libraries(start
     ${PCL_LIBRARIES}
     ${OpenCV_LIBRARIES}
-    ${ZMQ_LIBRARIES}
     ${EIGEN_LIBRARIES}
     ${BOOST_LIBRARIES}
-    ${JSONCPP_LIBRARIES}
     MechEyeApi
 )
 
