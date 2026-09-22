@@ -1,13 +1,19 @@
+#include <MechMindCamera.h>
+
+#include <chrono>
+#include <cstdio>
+#include <ctime>
+#include <filesystem>
 #include <sstream>
+#include <unistd.h>
+
+#include <area_scan_3d_camera/api_util.h>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <std_msgs/msg/string.hpp>
-#include <area_scan_3d_camera/api_util.h>
-#include <pcl/point_cloud.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <MechMindCamera.h>
 
 namespace {
 
@@ -71,6 +77,49 @@ void convertToROSMsg(const mmind::eye::PointCloud& pointCloud, sensor_msgs::msg:
            (cloud.row_step * cloud.height));
 }
 
+bool connectCamera(mmind::eye::Camera& camera, const std::string& camera_ip)
+{
+    mmind::eye::ErrorStatus status;
+
+    if (!camera_ip.empty()) {
+        std::cout << "Connecting to camera at IP " << camera_ip << "..." << std::endl;
+        status = camera.connect(camera_ip);
+        if (!status.isOK()) {
+            showError(status);
+            return false;
+        }
+        std::cout << "Successfully connected to the camera." << std::endl;
+        return true;
+    }
+
+    std::vector<mmind::eye::CameraInfo> device_info_list = mmind::eye::Camera::discoverCameras();
+
+    if (device_info_list.empty()) {
+        std::cout << "No cameras are available." << std::endl;
+        return false;
+    }
+
+    if (!isatty(fileno(stdin))) {
+        const auto& camera_info = device_info_list.front();
+        std::cout << "No interactive terminal detected, connecting to the first discovered camera."
+                  << std::endl;
+        printCameraInfo(camera_info);
+        if (!camera_info.ipAddress.empty()) {
+            status = camera.connect(camera_info.ipAddress);
+        } else {
+            status = camera.connect(camera_info);
+        }
+        if (!status.isOK()) {
+            showError(status);
+            return false;
+        }
+        std::cout << "Successfully connected to the camera." << std::endl;
+        return true;
+    }
+
+    return findAndConnect(camera);
+}
+
 } // namespace
 
 MechMindCamera::MechMindCamera()
@@ -79,19 +128,34 @@ MechMindCamera::MechMindCamera()
 
     node->declare_parameter<std::string>("camera_ip", "");
     node->declare_parameter<bool>("save_file", false);
+    node->declare_parameter<std::string>("save_dir", "");
     node->declare_parameter<bool>("use_external_intri", false);
     node->declare_parameter<double>("fx", 0.0);
     node->declare_parameter<double>("fy", 0.0);
     node->declare_parameter<double>("u", 0.0);
     node->declare_parameter<double>("v", 0.0);
+    node->declare_parameter<std::string>("color_frame_id", color_frame_id);
+    node->declare_parameter<std::string>("left_color_frame_id", left_color_frame_id);
+    node->declare_parameter<std::string>("right_color_frame_id", right_color_frame_id);
+    node->declare_parameter<std::string>("depth_frame_id", depth_frame_id);
+    node->declare_parameter<std::string>("point_cloud_frame_id", point_cloud_frame_id);
+    node->declare_parameter<std::string>("textured_point_cloud_frame_id",
+                                         textured_point_cloud_frame_id);
 
     node->get_parameter("camera_ip", camera_ip);
     node->get_parameter("save_file", save_file);
+    node->get_parameter("save_dir", save_dir);
     node->get_parameter("use_external_intri", use_external_intri);
     node->get_parameter("fx", fx);
     node->get_parameter("fy", fy);
     node->get_parameter("u", u);
     node->get_parameter("v", v);
+    node->get_parameter("color_frame_id", color_frame_id);
+    node->get_parameter("left_color_frame_id", left_color_frame_id);
+    node->get_parameter("right_color_frame_id", right_color_frame_id);
+    node->get_parameter("depth_frame_id", depth_frame_id);
+    node->get_parameter("point_cloud_frame_id", point_cloud_frame_id);
+    node->get_parameter("textured_point_cloud_frame_id", textured_point_cloud_frame_id);
 
     pub_color = node->create_publisher<sensor_msgs::msg::Image>("/mechmind/color_image", 1);
     pub_color_left =
@@ -105,25 +169,9 @@ MechMindCamera::MechMindCamera()
     pub_camera_info =
         node->create_publisher<sensor_msgs::msg::CameraInfo>("/mechmind/camera_info", 1);
 
-    if (!findAndConnect(camera))
+    if (!connectCamera(camera, camera_ip))
         throw mmind::eye::ErrorStatus{mmind::eye::ErrorStatus::MMIND_STATUS_INVALID_DEVICE,
                                       "Camera not found."};
-
-    // Uncomment the following lines and comment the above if function to connect to a specific
-    // camera by its IP address. The IP address is set in the "start_camera.launch" file as the
-    // value of the "camera_ip" argument.
-
-    // mmind::eye::ErrorStatus status;
-    // mmind::eye::CameraInfo info;
-    // info.firmwareVersion = mmind::eye::Version("2.3.4");
-    // info.ipAddress = camera_ip;
-    // info.port = 5577;
-    // status = camera.connect(info);
-    // if (!status.isOK())
-    // {
-    //     throw status;
-    // }
-    // std::cout << "Connected to the camera successfully." << std::endl;
 
     mmind::eye::CameraInfo cameraInfo;
     showError(camera.getCameraInfo(cameraInfo));
@@ -164,6 +212,11 @@ MechMindCamera::MechMindCamera()
         node->create_service<mecheye_ros_interface::srv::CapturePointCloud>(
             "capture_point_cloud", std::bind(&MechMindCamera::capture_point_cloud_callback, this,
                                              std::placeholders::_1, std::placeholders::_2));
+
+    capture_all_service =
+        node->create_service<mecheye_ros_interface::srv::CaptureAll>(
+            "capture_all", std::bind(&MechMindCamera::capture_all_callback, this,
+                                     std::placeholders::_1, std::placeholders::_2));
 
     add_user_set_service = node->create_service<mecheye_ros_interface::srv::AddUserSet>(
         "add_user_set", std::bind(&MechMindCamera::add_user_set_callback, this,
@@ -379,7 +432,7 @@ void MechMindCamera::publishColorMap(mmind::eye::Color2DImage& color2DImage)
     cv_image.encoding = sensor_msgs::image_encodings::BGR8;
     sensor_msgs::msg::Image ros_image;
     cv_image.toImageMsg(ros_image);
-    ros_image.header.frame_id = "mechmind_camera/color_map";
+    ros_image.header.frame_id = color_frame_id;
     ros_image.header.stamp = node->now();
     pub_color->publish(ros_image);
     publishColorCameraInfo(ros_image.header, color2DImage.width(), color2DImage.height());
@@ -400,7 +453,7 @@ void MechMindCamera::publishStereoColorMap(mmind::eye::Color2DImage& leftColor2D
     cv_image_left.encoding = sensor_msgs::image_encodings::BGR8;
     sensor_msgs::msg::Image ros_image_left;
     cv_image_left.toImageMsg(ros_image_left);
-    ros_image_left.header.frame_id = "mechmind_camera/left_color_map";
+    ros_image_left.header.frame_id = left_color_frame_id;
     ros_image_left.header.stamp = node->now();
     pub_color_left->publish(ros_image_left);
     publishDepthCameraInfo(ros_image_left.header, leftColor2DImage.width(),
@@ -413,7 +466,7 @@ void MechMindCamera::publishStereoColorMap(mmind::eye::Color2DImage& leftColor2D
     cv_image_right.encoding = sensor_msgs::image_encodings::BGR8;
     sensor_msgs::msg::Image ros_image_right;
     cv_image_right.toImageMsg(ros_image_right);
-    ros_image_right.header.frame_id = "mechmind_camera/right_color_map";
+    ros_image_right.header.frame_id = right_color_frame_id;
     ros_image_right.header.stamp = node->now();
     pub_color_right->publish(ros_image_right);
     publishColorCameraInfo(ros_image_right.header, rightColor2DImage.width(),
@@ -438,7 +491,7 @@ void MechMindCamera::publishDepthMap(mmind::eye::DepthMap& depthMap)
     cv_depth.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
     sensor_msgs::msg::Image ros_depth;
     cv_depth.toImageMsg(ros_depth);
-    ros_depth.header.frame_id = "mechmind_camera/depth_map";
+    ros_depth.header.frame_id = depth_frame_id;
     ros_depth.header.stamp = node->now();
     pub_depth->publish(ros_depth);
     publishDepthCameraInfo(ros_depth.header, depthMap.width(), depthMap.height());
@@ -455,7 +508,7 @@ void MechMindCamera::publishDepthMap(mmind::eye::DepthMap& depthMap)
 void MechMindCamera::publishPointCloud(mmind::eye::PointCloud& pointCloud)
 {
     sensor_msgs::msg::PointCloud2 ros_cloud;
-    ros_cloud.header.frame_id = "mechmind_camera/point_cloud";
+    ros_cloud.header.frame_id = point_cloud_frame_id;
     ros_cloud.header.stamp = node->now();
     convertToROSMsg(pointCloud, ros_cloud);
     pub_pcl->publish(ros_cloud);
@@ -465,7 +518,7 @@ void MechMindCamera::publishPointCloud(mmind::eye::PointCloud& pointCloud)
 void MechMindCamera::publishColorPointCloud(mmind::eye::TexturedPointCloud& texturedPointCloud)
 {
     sensor_msgs::msg::PointCloud2 ros_color_cloud;
-    ros_color_cloud.header.frame_id = "mechmind_camera/textured_point_cloud";
+    ros_color_cloud.header.frame_id = textured_point_cloud_frame_id;
     ros_color_cloud.header.stamp = node->now();
     convertToROSMsg(texturedPointCloud, ros_color_cloud);
     pub_pcl_color->publish(ros_color_cloud);
@@ -514,6 +567,49 @@ void MechMindCamera::capture_depth_map_callback(
     publishDepthMap(depthMap);
 }
 
+std::string MechMindCamera::captureStem()
+{
+    if (save_dir.empty())
+        return "";
+    std::error_code ec;
+    std::filesystem::create_directories(save_dir, ec);
+    if (ec) {
+        std::cerr << "Cannot create save_dir '" << save_dir << "': " << ec.message() << std::endl;
+        return "";
+    }
+    const auto now = std::chrono::system_clock::now();
+    const auto ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() %
+        1000;
+    const std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+    localtime_r(&t, &tm);
+    char buf[32];
+    std::strftime(buf, sizeof(buf), "%Y%m%d_%H%M%S", &tm);
+    char stamp[48];
+    std::snprintf(stamp, sizeof(stamp), "%s_%03d", buf, static_cast<int>(ms));
+    return (std::filesystem::path(save_dir) / stamp).string();
+}
+
+void MechMindCamera::saveCapture(const std::string& stem, mmind::eye::Frame3D& frame3D,
+                                 mmind::eye::Color2DImage* color2DImage)
+{
+    if (stem.empty())
+        return;
+    const auto status =
+        frame3D.saveUntexturedPointCloud(mmind::eye::FileFormat::PLY, stem + "_point_cloud.ply");
+    showError(status);
+    if (color2DImage != nullptr) {
+        cv::Mat color =
+            cv::Mat(color2DImage->height(), color2DImage->width(), CV_8UC3, color2DImage->data());
+        cv::imwrite(stem + "_color.png", color);
+        auto depthMap = frame3D.getDepthMap();
+        cv::Mat depth = cv::Mat(depthMap.height(), depthMap.width(), CV_32FC1, depthMap.data());
+        cv::imwrite(stem + "_depth.tiff", depth);
+    }
+    std::cout << "Capture saved to " << stem << "_*" << std::endl;
+}
+
 void MechMindCamera::capture_point_cloud_callback(
     const std::shared_ptr<mecheye_ros_interface::srv::CapturePointCloud::Request> req,
     std::shared_ptr<mecheye_ros_interface::srv::CapturePointCloud::Response> res)
@@ -525,8 +621,42 @@ void MechMindCamera::capture_point_cloud_callback(
     res->error_description = status.errorDescription.c_str();
     auto pointCloud = frame.getUntexturedPointCloud();
     publishPointCloud(pointCloud);
+    saveCapture(captureStem(), frame, nullptr);
     if (save_file) {
         frame.saveUntexturedPointCloud(mmind::eye::FileFormat::PLY, "/tmp/point_cloud.ply");
+        std::cout << "The point cloud is saved to /tmp." << std::endl;
+    }
+}
+
+void MechMindCamera::capture_all_callback(
+    const std::shared_ptr<mecheye_ros_interface::srv::CaptureAll::Request> req,
+    std::shared_ptr<mecheye_ros_interface::srv::CaptureAll::Response> res)
+{
+    // Single capture2DAnd3D call to get 2D + 3D from the same frame
+    mmind::eye::Frame2DAnd3D frame2DAnd3D;
+    auto status = camera.capture2DAnd3D(frame2DAnd3D);
+    showError(status);
+    res->error_code = status.errorCode;
+    res->error_description = status.errorDescription.c_str();
+    if (status.errorCode != 0) return;
+
+    // Publish point cloud
+    mmind::eye::Frame3D frame3D = frame2DAnd3D.frame3D();
+    auto pointCloud = frame3D.getUntexturedPointCloud();
+    publishPointCloud(pointCloud);
+
+    // Publish depth map
+    auto depthMap = frame3D.getDepthMap();
+    publishDepthMap(depthMap);
+
+    // Publish grayscale image (convert color to grayscale)
+    mmind::eye::Color2DImage colorMap = frame2DAnd3D.frame2D().getColorImage();
+    publishColorMap(colorMap);
+
+    saveCapture(captureStem(), frame3D, &colorMap);
+
+    if (save_file) {
+        frame3D.saveUntexturedPointCloud(mmind::eye::FileFormat::PLY, "/tmp/point_cloud.ply");
         std::cout << "The point cloud is saved to /tmp." << std::endl;
     }
 }

@@ -91,6 +91,35 @@ sudo apt install python3-colcon-common-extensions
      ros2 launch ~/colcon_ws/src/mecheye_ros2_interface/launch/start_camera.py
      ```
 
+     If you already have an extrinsic calibration, put it in
+     `config/mecheye_calibration_31_03_2026.yaml` and pass that file to the launch file so the
+     camera is inserted into the TF tree at startup. A template file is included in this repository.
+     Update the frame IDs and pose values in that YAML before starting the driver. The launch file
+     accepts a `rotation` quaternion (preferred), `roll`/`pitch`/`yaw` directly, or legacy
+     Mech-Vision style `rotation_axis` plus `rotation_angle_deg`:
+
+     ```bash
+     source ~/colcon_ws/install/setup.bash
+     ros2 launch ~/colcon_ws/src/mecheye_ros2_interface/launch/start_camera.py \
+       calibration_file:=~/colcon_ws/src/mecheye_ros2_interface/config/mecheye_calibration_31_03_2026.yaml
+     ```
+
+     This launch file publishes:
+
+     * a static transform from `external_calibration.frame_id` to
+       `external_calibration.child_frame_id`
+     * a static transform from `camera_frame` to `camera_optical_frame`
+     * image, depth, and point cloud messages with `camera_optical_frame` as `header.frame_id`
+
+     Because TF is bidirectional, publishing `camera_frame -> camera_optical_frame` also gives you
+     the inverse lookup from the point cloud frame back to the camera frame.
+
+     If your external calibration result is `camera -> tool_base`, you can encode it directly in the
+     YAML by setting `external_calibration.frame_id` to the camera frame and
+     `external_calibration.child_frame_id` to `tool_base`. If `tool_base` is already published by
+     your robot driver, prefer inverting that result and publishing `tool_base -> camera` instead so
+     the TF tree keeps a single parent for `tool_base`.
+
    * Use the `ros run` command:
   
      ```bash
@@ -489,3 +518,12 @@ Example: Set the value of the `Scan2DHDRExposureSequence` parameter to [30.0, 35
   ```bash
   ros2 service call /set_float_array_parameter mecheye_ros_interface/srv/SetFloatArrayParameter "{name: Scan2DHDRExposureSequence, array: [30.0,35.5,40.0]}"
   ```
+
+### Saving every capture
+
+Launch with `save_dir:=/some/dir` (`ros2 launch .../start_camera.py save_dir:=/some/dir`) and every
+`capture_point_cloud` / `capture_all` call also writes timestamped files there, instead of
+overwriting `/tmp/point_cloud.ply`:
+
+* `<stamp>_point_cloud.ply` (both services)
+* `<stamp>_color.png` and `<stamp>_depth.tiff` (`capture_all`, from the same frame)

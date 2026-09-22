@@ -8,12 +8,13 @@
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 #include <mecheye_ros_interface/srv/capture_color_image.hpp>
 #include <mecheye_ros_interface/srv/capture_stereo_color_images.hpp>
 #include <mecheye_ros_interface/srv/capture_textured_point_cloud.hpp>
 #include <mecheye_ros_interface/srv/capture_depth_map.hpp>
 #include <mecheye_ros_interface/srv/capture_point_cloud.hpp>
+#include <mecheye_ros_interface/srv/capture_all.hpp>
 #include <mecheye_ros_interface/srv/delete_user_set.hpp>
 #include <mecheye_ros_interface/srv/device_info.hpp>
 #include <mecheye_ros_interface/srv/add_user_set.hpp>
@@ -48,11 +49,18 @@ private:
 
     std::string camera_ip;
     bool save_file = false;
+    std::string save_dir;
     bool use_external_intri = false;
     double fx = 0;
     double fy = 0;
     double u = 0;
     double v = 0;
+    std::string color_frame_id = "mechmind_camera/color_map";
+    std::string left_color_frame_id = "mechmind_camera/left_color_map";
+    std::string right_color_frame_id = "mechmind_camera/right_color_map";
+    std::string depth_frame_id = "mechmind_camera/depth_map";
+    std::string point_cloud_frame_id = "mechmind_camera/point_cloud";
+    std::string textured_point_cloud_frame_id = "mechmind_camera/textured_point_cloud";
 
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_color;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_color_left;
@@ -63,6 +71,9 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pub_camera_info;
 
     void publishColorMap(mmind::eye::Color2DImage& color2DImage);
+    std::string captureStem();
+    void saveCapture(const std::string& stem, mmind::eye::Frame3D& frame3D,
+                     mmind::eye::Color2DImage* color2DImage);
     void publishStereoColorMap(mmind::eye::Color2DImage& leftColor2DImage,
                                mmind::eye::Color2DImage& rightColor2DImage);
     void publishDepthMap(mmind::eye::DepthMap& depthMap);
@@ -82,6 +93,8 @@ private:
         capture_depth_map_service;
     rclcpp::Service<mecheye_ros_interface::srv::CapturePointCloud>::SharedPtr
         capture_point_cloud_service;
+    rclcpp::Service<mecheye_ros_interface::srv::CaptureAll>::SharedPtr
+        capture_all_service;
 
     rclcpp::Service<mecheye_ros_interface::srv::DeleteUserSet>::SharedPtr delete_user_set_service;
     rclcpp::Service<mecheye_ros_interface::srv::DeviceInfo>::SharedPtr device_info_service;
@@ -136,6 +149,10 @@ private:
     void capture_point_cloud_callback(
         const std::shared_ptr<mecheye_ros_interface::srv::CapturePointCloud::Request> req,
         std::shared_ptr<mecheye_ros_interface::srv::CapturePointCloud::Response> res);
+
+    void capture_all_callback(
+        const std::shared_ptr<mecheye_ros_interface::srv::CaptureAll::Request> req,
+        std::shared_ptr<mecheye_ros_interface::srv::CaptureAll::Response> res);
 
     void capture_stereo_color_images_callback(
         const std::shared_ptr<mecheye_ros_interface::srv::CaptureStereoColorImages::Request> req,

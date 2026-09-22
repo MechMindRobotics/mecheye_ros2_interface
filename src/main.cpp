@@ -5,7 +5,9 @@ void signalHandler(int signum) { rclcpp::shutdown(); }
 
 int main(int argc, char** argv)
 {
-    rclcpp::init(argc, argv);
+    rclcpp::InitOptions init_options;
+    init_options.auto_initialize_logging(false);
+    rclcpp::init(argc, argv, init_options);
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
 
